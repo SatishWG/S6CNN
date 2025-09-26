@@ -146,19 +146,21 @@ def test(model, device, test_loader):
 
     test_acc.append(100. * correct / len(test_loader.dataset))
 
-from torch.optim.lr_scheduler import StepLR
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
 model =  Net().to(device)
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-scheduler = StepLR(optimizer, step_size=6, gamma=0.1)
+# scheduler = StepLR(optimizer, step_size=6, gamma=0.1)
+scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3)
 
 
 EPOCHS = 16
 for epoch in range(EPOCHS):
     print("EPOCH:", epoch)
     train(model, device, train_loader, optimizer, epoch)
-    scheduler.step()
+    # scheduler.step()
     test(model, device, test_loader)
+    scheduler.step(test_losses[-1])
 
 """# Let's Train and test our model
 
