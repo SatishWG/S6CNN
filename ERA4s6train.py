@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 
-from ERA4s6Model1 import Net
+from ERA4s6Model2 import Net
 
 """## Data Transformations
 
@@ -21,6 +21,9 @@ train_transforms = transforms.Compose([
                                       #  transforms.Resize((28, 28)),
                                       #  transforms.ColorJitter(brightness=0.10, contrast=0.1, saturation=0.10, hue=0.1),
                                        transforms.RandomRotation((-7.0, 7.0), fill=(1,)),
+                                       transforms.RandomResizedCrop(size=28, scale=(0.8, 1.0), ratio=(1.0, 1.0)),
+                                       # Crop from top: top=2, left=0, height=26, width=28
+                                    #    transforms.RandomCrop((26, 28), padding=(0, 0, 0, 0), pad_if_needed=True, fill=1, padding_mode='constant'), #, crop_choices=[(2, 0)]
                                        transforms.ToTensor(),
                                        transforms.Normalize((0.1307,), (0.3081,)) # The mean and std have to be sequences (e.g., tuples), therefore you should add a comma after the values.
                                        # Note the difference between (0.1307) and (0.1307,)
@@ -151,7 +154,7 @@ from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 model =  Net().to(device)
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 # scheduler = StepLR(optimizer, step_size=6, gamma=0.1)
-scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3)
+scheduler = ReduceLROnPlateau(optimizer, 'min', patience=0)
 
 
 EPOCHS = 16
@@ -169,14 +172,26 @@ This time let's add a scheduler for out LR.
 
 # Commented out IPython magic to ensure Python compatibility.
 # %matplotlib inline
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-# fig, axs = plt.subplots(2,2,figsize=(15,10))
-# axs[0, 0].plot(train_losses)
-# axs[0, 0].set_title("Training Loss")
-# axs[1, 0].plot(train_acc[4000:])
-# axs[1, 0].set_title("Training Accuracy")
-# axs[0, 1].plot(test_losses)
-# axs[0, 1].set_title("Test Loss")
-# axs[1, 1].plot(test_acc)
-# axs[1, 1].set_title("Test Accuracy")
+# Convert train_losses from tensors to numpy arrays
+train_losses_np = [loss.detach().cpu().numpy() for loss in train_losses]
+
+fig, axs = plt.subplots(2,2,figsize=(15,10))
+axs[0, 0].plot(train_losses_np)
+axs[0, 0].set_title("Training Loss")
+axs[1, 0].plot(train_acc[4000:])
+axs[1, 0].set_title("Training Accuracy")
+axs[0, 1].plot(test_losses)
+axs[0, 1].set_title("Test Loss")
+axs[1, 1].plot(test_acc)
+axs[1, 1].set_title("Test Accuracy")
+
+# Add overall title
+fig.suptitle('Training and Testing Metrics', fontsize=16)
+
+# Adjust layout to prevent overlap
+plt.tight_layout()
+
+# Display the plot
+plt.show()

@@ -1,15 +1,15 @@
 '''
 Target:
-Add LR Scheduler
+increase capacity to achive the target accuracy of 99.4% within 15 epochs
 
 Results:
-Parameters: 13.8k
-Best Train Accuracy: 99.21
-Best Test Accuracy: 99.45 (9th Epoch), 99.48 (20th Epoch)
+Parameters: 6,334
+Best Train Accuracy: 98.08 (10th Epoch)
+Best Test Accuracy: 98.17 (7th Epoch)
 
 Analysis:
-Finding a good LR schedule is hard. We have tried to make it effective by reducing LR by the 10th after the 6th epoch.
-It did help in getting to 99.4 or faster, but the final accuracy is not more than 99.5. Possibly a good scheduler can do wonders here!
+Model Underfitting
+Accuracy numbers with randomcrop
 '''
 
 # Import Libraries
@@ -30,80 +30,71 @@ dropout_value = 0.1
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        # Input Block
+        # Input Block 28  >>> RF 1
         self.convblock1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=16, kernel_size=(3, 3), padding=0, bias=False),
+            nn.Conv2d(in_channels=1, out_channels=10, kernel_size=(3, 3), padding=0, bias=False),
+            nn.BatchNorm2d(10),
             nn.ReLU(),
-            nn.BatchNorm2d(16),
             nn.Dropout(dropout_value)
-        ) # output_size = 26
+        ) # output_size = 26 >>> RF 3
 
         # CONVOLUTION BLOCK 1
         self.convblock2 = nn.Sequential(
-            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), padding=0, bias=False),
+            nn.Conv2d(in_channels=10, out_channels=16, kernel_size=(3, 3), padding=0, bias=False),
+            nn.BatchNorm2d(16),
             nn.ReLU(),
-            nn.BatchNorm2d(32),
             nn.Dropout(dropout_value)
-        ) # output_size = 24
+        ) # output_size = 24. >>> RF 5
+
+
+        self.convblock3 = nn.Sequential(
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), padding=0, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Dropout(dropout_value)
+        ) # output_size = 22 >>> RF 7
 
         # TRANSITION BLOCK 1
-        self.convblock3 = nn.Sequential(
+        self.convblock4 = nn.Sequential(
             nn.Conv2d(in_channels=32, out_channels=10, kernel_size=(1, 1), padding=0, bias=False),
-        ) # output_size = 24
-        self.pool1 = nn.MaxPool2d(2, 2) # output_size = 12
+        ) # output_size = 22 >>> RF 5
+        self.pool1 = nn.MaxPool2d(2, 2) # output_size = 11 >>> RF 6        
 
         # CONVOLUTION BLOCK 2
-        self.convblock4 = nn.Sequential(
-            nn.Conv2d(in_channels=10, out_channels=16, kernel_size=(3, 3), padding=0, bias=False),
-            nn.ReLU(),
-            nn.BatchNorm2d(16),
-            nn.Dropout(dropout_value)
-        ) # output_size = 10
         self.convblock5 = nn.Sequential(
-            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3, 3), padding=0, bias=False),
-            nn.ReLU(),
+            nn.Conv2d(in_channels=10, out_channels=16, kernel_size=(3, 3), padding=0, bias=False),
             nn.BatchNorm2d(16),
+            nn.ReLU(),
             nn.Dropout(dropout_value)
-        ) # output_size = 8
+        ) # output_size = 9 >>> RF 10
         self.convblock6 = nn.Sequential(
-            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3, 3), padding=0, bias=False),
+            nn.Conv2d(in_channels=16, out_channels=20, kernel_size=(3, 3), padding=0, bias=False),
+            nn.BatchNorm2d(20),
             nn.ReLU(),
-            nn.BatchNorm2d(16),
             nn.Dropout(dropout_value)
-        ) # output_size = 6
-        self.convblock7 = nn.Sequential(
-            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3, 3), padding=1, bias=False),
-            nn.ReLU(),
-            nn.BatchNorm2d(16),
-            nn.Dropout(dropout_value)
-        ) # output_size = 6
+        ) # output_size = 7 >>> RF 14
 
         # OUTPUT BLOCK
+
         self.gap = nn.Sequential(
-            nn.AvgPool2d(kernel_size=6)
-        ) # output_size = 1
+            nn.AvgPool2d(kernel_size=7) # 7>> 9... nn.AdaptiveAvgPool((1, 1))
+        ) # output_size = 1 >>> RF 18
 
-        self.convblock8 = nn.Sequential(
-            nn.Conv2d(in_channels=16, out_channels=10, kernel_size=(1, 1), padding=0, bias=False),
-            # nn.BatchNorm2d(10),
-            # nn.ReLU(),
-            # nn.Dropout(dropout_value)
-        )
-
-
-        self.dropout = nn.Dropout(dropout_value)
+        self.convblock7 = nn.Sequential(
+            nn.Conv2d(in_channels=20, out_channels=10, kernel_size=(1, 1), padding=0, bias=False),
+            # nn.BatchNorm2d(10),NEVER
+            # nn.ReLU()NEVER
+        ) # output_size = 7 >>> RF 22        
 
     def forward(self, x):
         x = self.convblock1(x)
         x = self.convblock2(x)
         x = self.convblock3(x)
-        x = self.pool1(x)
         x = self.convblock4(x)
+        x = self.pool1(x)
         x = self.convblock5(x)
         x = self.convblock6(x)
-        x = self.convblock7(x)
         x = self.gap(x)
-        x = self.convblock8(x)
-
+        x = self.convblock7(x)
         x = x.view(-1, 10)
         return F.log_softmax(x, dim=-1)
