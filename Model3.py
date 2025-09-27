@@ -1,6 +1,6 @@
 '''
 Target:
-Add LR Scheduler
+Reduce parameters to achieve the accuracy
 
 Results:
 Parameters 8,344
