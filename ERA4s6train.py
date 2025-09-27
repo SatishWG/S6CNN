@@ -7,8 +7,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
+# import logging
+# import sys, datetime
 
-from ERA4s6Model2 import Net
+
+from Model3 import Net
 
 """## Data Transformations
 
@@ -153,17 +156,17 @@ from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
 model =  Net().to(device)
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-# scheduler = StepLR(optimizer, step_size=6, gamma=0.1)
-scheduler = ReduceLROnPlateau(optimizer, 'min', patience=0)
+scheduler = StepLR(optimizer, step_size=6, gamma=0.1)
+# scheduler = ReduceLROnPlateau(optimizer, 'min', patience=1)
 
 
 EPOCHS = 16
 for epoch in range(EPOCHS):
     print("EPOCH:", epoch)
     train(model, device, train_loader, optimizer, epoch)
-    # scheduler.step()
+    scheduler.step()
     test(model, device, test_loader)
-    scheduler.step(test_losses[-1])
+    # scheduler.step(test_losses[-1])
 
 """# Let's Train and test our model
 
@@ -185,6 +188,8 @@ axs[1, 0].set_title("Training Accuracy")
 axs[0, 1].plot(test_losses)
 axs[0, 1].set_title("Test Loss")
 axs[1, 1].plot(test_acc)
+#  Draw a horizontal line at y=99.4
+plt.axhline(y=99.4, color='red', linestyle='--', label='Target 99.4%')
 axs[1, 1].set_title("Test Accuracy")
 
 # Add overall title

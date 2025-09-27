@@ -1,6 +1,6 @@
 '''
 Target:
-Establish Base line with all the necessary parts in place.
+Establish Base line with all the necessary parts in place including Dropout, BatchNorm.
 
 Results:
 Parameters: 7,662
@@ -8,7 +8,8 @@ Best Train Accuracy: 98.58 (12th Epoch)
 Best Test Accuracy: 98.92 (8th and 15th Epoch)
 
 Analysis:
-Model Underfitting
+Model is good and Underfitting. 
+Need to add more capacity to achieve the target accuracy of 99.4% within 15 epochs.
 '''
 
 # Import Libraries

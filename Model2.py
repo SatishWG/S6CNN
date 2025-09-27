@@ -3,13 +3,20 @@ Target:
 Add LR Scheduler
 
 Results:
-Parameters: 13.8k
+Parameters: 13,808
+With StepLR
 Best Train Accuracy: 99.21
 Best Test Accuracy: 99.45 (9th Epoch), 99.48 (20th Epoch)
+With ReduceLROnPlateau
+Best Train Accuracy: 98.82 (12th Epoch)
+Best Test Accuracy: 99.45 (12th Epoch)
 
 Analysis:
-Finding a good LR schedule is hard. We have tried to make it effective by reducing LR by the 10th after the 6th epoch.
-It did help in getting to 99.4 or faster, but the final accuracy is not more than 99.5. Possibly a good scheduler can do wonders here!
+Large model able to achieve the target accuracy of 99.4% within 15 epochs but not consistently
+Need to find a good LR scheduler is. We have tried to make it effective by reducing LR by the 10th after the 6th epoch.
+It did help in getting to 99.4 or faster, but the final accuracy is not consistent. 
+Tried ReduceLROnPlateau to improve accuracy.
+
 '''
 
 # Import Libraries
